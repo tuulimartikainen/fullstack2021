@@ -10,7 +10,6 @@ const Anecdote = (props) => {
 }
 
 const Button = (props) => {
-
   return (
     <button onClick={props.handleClick}>
       {props.text}
@@ -44,22 +43,12 @@ const App = () => {
   const [selected, setSelected] = useState(0)
   const [points, setPoints] = useState([])
   
-  //const [mostVoted, setMostVoted] = useState(0)
-  //const [highestScore, setHighestScore] = useState(0)
-
   const handleClickAnecdote = () => {
-    
     setSelected(Math.floor(Math.random() * 7))
   }
 
   const handleClickVote = () => {
-    
     setPoints((copy[selected] += 1))
-    //console.log(r)
-    //if (r > highestScore) {
-      //setHighestScore(r)
-      //setMostVoted(anecdotes[anecdoteInQuestion])
-    //}
   }
 
   return (
@@ -78,12 +67,9 @@ const App = () => {
       />
 
       <MostVoted
-      name={anecdotes[copy.indexOf(Math.max(...copy))]}
-      vote={Math.max(...copy)}
+        name={anecdotes[copy.indexOf(Math.max(...copy))]}
+        vote={Math.max(...copy)}
       />
-
-
-
     </div>
   )
 }
