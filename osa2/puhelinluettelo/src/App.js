@@ -1,4 +1,5 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
+import axios from 'axios'
 import Filter from './Components/Filter'
 import Person from './Components/Person'
 import PersonForm from './Components/PersonForm'
@@ -6,20 +7,26 @@ import PersonForm from './Components/PersonForm'
 
 const App = () => {
   console.log('App toimii')
-  const [persons, setPersons] = useState([
-    { name: 'Arto Hellas', number: '040-123456' },
-    { name: 'Ada Lovelace', number: '39-44-5323523' },
-    { name: 'Dan Abramov', number: '12-43-234345' },
-    { name: 'Mary Poppendieck', number: '39-23-6423122' }
-  ]) 
+  const [persons, setPersons] = useState([]) 
   const [newName, setNewName] = useState('')
   const [newNumber, setNewNumber] = useState('')
   const [searchValue, setSearchValue] = useState('')
 
+  useEffect(() => {
+    console.log('effect')
+    axios
+      .get('http://localhost:3001/persons')
+      .then(response => {
+        console.log('promise fulfilled')
+        setPersons(response.data)
+      })
+  }, [])
+  console.log('render', persons.length, 'notes')
+
   const showFiltered = searchValue === ''
     ? persons
     : persons.filter(person => person.name.startsWith(searchValue))
-
+  
 const addName = (event) => {
   event.preventDefault()
   console.log('button clicked' , event.target)
