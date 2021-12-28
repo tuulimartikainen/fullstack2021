@@ -11,6 +11,7 @@ const App = () => {
   const [newName, setNewName] = useState('')
   const [newNumber, setNewNumber] = useState('')
   const [searchValue, setSearchValue] = useState('')
+  
 
   useEffect(() => {
     console.log('effect')
@@ -49,9 +50,19 @@ const addName = (event) => {
 
   } else {
     
-    window.alert(`${newName} is already added to phonebook`)
-    setNewName('')
-    setNewNumber('')
+    if (window.confirm(`${newName} is already added to phonebook, replace the old 
+    number with a new one?`)){
+      const changedPerson = persons.find(n => n.name === newName)
+      people
+      .update(changedPerson.id, newObject)
+      .then(response => {
+          setPersons(persons.map(person => person.id !== changedPerson.id ? person : response.data))
+          setNewName('')
+          setNewNumber('')
+      })
+    }
+
+
   }
   
 
@@ -69,6 +80,21 @@ const handleNumberChange = (event) => {
   setNewNumber(event.target.value)
 }
 
+const removeName = (event) => {
+  const i = event.target.value
+  event.preventDefault()
+  console.log(i)
+  if (window.confirm("poistetaanko varmasti?")){
+  people
+    .remove(i)
+    .then(response => {
+      console.log('poistettu palvelimelta')  
+      setPersons(persons.filter(n => n.id !== i))
+    }) 
+  }
+
+  }
+
   return (
     <div>
       <h2>Phonebook</h2>
@@ -82,7 +108,10 @@ const handleNumberChange = (event) => {
       handleNumberChange={handleNumberChange}/>
       <h2>Numbers</h2>
         {showFiltered.map((person, i) =>
-           <Person key={i} person={person}/> 
+           <Person key={i} 
+           person={person} 
+           removeName={removeName}
+           nameToRemove={person}/> 
           )}
     </div>
   )

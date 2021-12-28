@@ -7,7 +7,11 @@ const Person = (props)  => {
     return (
       <div>
         <p>
-          {props.person.name} {props.person.number}
+          {props.person.name} {props.person.number} 
+          <button 
+          onClick={props.removeName}
+          value={props.person.id}
+          >delete</button>
         </p>
       </div>
     )
