@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react'
-import axios from 'axios'
 import Filter from './Components/Filter'
 import Person from './Components/Person'
 import PersonForm from './Components/PersonForm'
+import people from './services/people'
 
 
 const App = () => {
@@ -14,8 +14,8 @@ const App = () => {
 
   useEffect(() => {
     console.log('effect')
-    axios
-      .get('http://localhost:3001/persons')
+    people
+      .getAll()
       .then(response => {
         console.log('promise fulfilled')
         setPersons(response.data)
@@ -39,9 +39,13 @@ const addName = (event) => {
 
   if (!names.includes(newObject.name)) {
     
-    setPersons(persons.concat(newObject))
-    setNewName('')
-    setNewNumber('')    
+    people
+      .create(newObject)
+      .then(response => {
+          setPersons(persons.concat(newObject))
+          setNewName('')
+          setNewNumber('')
+      })    
 
   } else {
     
