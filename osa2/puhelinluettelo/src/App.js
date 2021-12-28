@@ -3,7 +3,8 @@ import Filter from './Components/Filter'
 import Person from './Components/Person'
 import PersonForm from './Components/PersonForm'
 import people from './services/people'
-
+import Notification from './Components/Notification'
+import Error from './Components/Error'
 
 const App = () => {
   console.log('App toimii')
@@ -11,7 +12,9 @@ const App = () => {
   const [newName, setNewName] = useState('')
   const [newNumber, setNewNumber] = useState('')
   const [searchValue, setSearchValue] = useState('')
-  
+  const [alertMessage, setAlertMessage] = useState(null)
+  const [errorMessage, setErrorMessage] = useState(null)
+
 
   useEffect(() => {
     console.log('effect')
@@ -43,9 +46,13 @@ const addName = (event) => {
     people
       .create(newObject)
       .then(response => {
+          setAlertMessage( `Added ${newObject.name} to the phonebook`)
           setPersons(persons.concat(newObject))
           setNewName('')
           setNewNumber('')
+          setTimeout(() => {
+            setAlertMessage(null)
+          }, 5000)
       })    
 
   } else {
@@ -90,14 +97,24 @@ const removeName = (event) => {
     .then(response => {
       console.log('poistettu palvelimelta')  
       setPersons(persons.filter(n => n.id !== i))
-    }) 
-  }
+    })
+    .catch(error => {
+      console.log('fail') 
+      setErrorMessage( `Information has already been removed from server`)
+      setTimeout(() => {
+        setErrorMessage(null)
+      }, 5000)
+  })
+}
+}
 
-  }
+
 
   return (
     <div>
       <h2>Phonebook</h2>
+      <Notification message={alertMessage} />
+      <Error message={errorMessage} />
       <Filter searchValue={searchValue}
         handleFilter={handleFilter}/>
       <h2>add a new</h2>
