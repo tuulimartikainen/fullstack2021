@@ -2,18 +2,13 @@ import React from 'react'
 
 
 
-const Person = (props)  => {
+const Person = ({persons, deletePerson})  => {
     console.log('Person toimii')
     return (
-      <div>
-        <p>
-          {props.person.name} {props.person.number} 
-          <button 
-          onClick={props.removeName}
-          value={props.person.id}
-          >delete</button>
-        </p>
-      </div>
+      persons.map(person => <p key = {person.id}>
+        {person.name} {person.number} 
+        <button onClick = { () => deletePerson(person.id) } >delete </button>
+        </p>)     
     )
   }
 

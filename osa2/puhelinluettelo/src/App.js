@@ -4,7 +4,6 @@ import Person from './Components/Person'
 import PersonForm from './Components/PersonForm'
 import people from './services/people'
 import Notification from './Components/Notification'
-import Error from './Components/Error'
 
 const App = () => {
   console.log('App toimii')
@@ -12,19 +11,23 @@ const App = () => {
   const [newName, setNewName] = useState('')
   const [newNumber, setNewNumber] = useState('')
   const [searchValue, setSearchValue] = useState('')
-  const [alertMessage, setAlertMessage] = useState(null)
-  const [errorMessage, setErrorMessage] = useState(null)
-
+  const [notification, setNotification] = useState(null)
 
   useEffect(() => {
     console.log('effect')
     people
       .getAll()
-      .then(response => {
-        console.log('promise fulfilled')
-        setPersons(response.data)
+      .then((data) =>{
+        setPersons(data)
       })
   }, [])
+
+  const notifyWith = (message, type='success') =>{
+    setNotification({ message, type })
+    setTimeout(()=>{
+      setNotification(null)
+    }, 5000)
+  }
   console.log('render', persons.length, 'notes')
 
   const showFiltered = searchValue === ''
@@ -34,46 +37,41 @@ const App = () => {
 const addName = (event) => {
   event.preventDefault()
   console.log('button clicked' , event.target)
+  const found = persons.find(p => p.name === newName)
 
-  const newObject = {
-    name: newName,
-    number: newNumber    
-  }
-  const names = persons.map(person => person.name)
-
-  if (!names.includes(newObject.name)) {
-    
-    people
-      .create(newObject)
-      .then(response => {
-          setAlertMessage( `Added ${newObject.name} to the phonebook`)
-          setPersons(persons.concat(newObject))
+  if (found) {
+    const ok = window.confirm(`${found.name} already in phonebook, replace the old number with new one?`)
+    if (ok) {
+      people.update(found.id, {
+        name: found.name,
+        number: newNumber})
+        .then(returnedPerson => {
+          setPersons(persons.map(person => person.id !== found.id ? person : returnedPerson))
+          notifyWith(`Changed number of  ${found.name}`)
           setNewName('')
           setNewNumber('')
-          setTimeout(() => {
-            setAlertMessage(null)
-          }, 5000)
-      })    
+        })
+      }
+    
 
   } else {
     
-    if (window.confirm(`${newName} is already added to phonebook, replace the old 
-    number with a new one?`)){
-      const changedPerson = persons.find(n => n.name === newName)
-      people
-      .update(changedPerson.id, newObject)
-      .then(response => {
-          setPersons(persons.map(person => person.id !== changedPerson.id ? person : response.data))
-          setNewName('')
-          setNewNumber('')
-      })
-    }
-
-
+    people.create({
+      name: newName,
+      number: newNumber   
+      }).then(addedPerson=>{
+        setPersons(persons.concat(addedPerson))
+        notifyWith(`Added ${newName}`)
+        setNewName('')
+        setNewNumber('')
+    }).catch(error=>{
+      console.log('in APP', error.response.data)
+      notifyWith(`${error.response.data}`, 'error')
+    })
   }
-  
-
 }
+
+  
 
 const handleFilter = (event) => {
   setSearchValue(event.target.value)
@@ -87,23 +85,21 @@ const handleNumberChange = (event) => {
   setNewNumber(event.target.value)
 }
 
-const removeName = (event) => {
-  const i = event.target.value
-  event.preventDefault()
-  console.log(i)
-  if (window.confirm("poistetaanko varmasti?")){
+const removeName = (id) => {
+  const deletedName = persons.find(p => p.id === id)
+  const confirm = window.confirm(`Delete ${deletedName.name}`)
+  if (confirm){
+  console.log(deletedName)
   people
-    .remove(i)
+    .remove(id)
     .then(response => {
       console.log('poistettu palvelimelta')  
-      setPersons(persons.filter(n => n.id !== i))
+      setPersons(persons.filter(n => n.id !== id))
+      notifyWith(`Deleted ${deletedName.name}`)
     })
     .catch(error => {
       console.log('fail') 
-      setErrorMessage( `Information has already been removed from server`)
-      setTimeout(() => {
-        setErrorMessage(null)
-      }, 5000)
+      notifyWith(`${deletedName.name}had already been removed`, 'error')
   })
 }
 }
@@ -113,8 +109,7 @@ const removeName = (event) => {
   return (
     <div>
       <h2>Phonebook</h2>
-      <Notification message={alertMessage} />
-      <Error message={errorMessage} />
+      <Notification notification={notification} />
       <Filter searchValue={searchValue}
         handleFilter={handleFilter}/>
       <h2>add a new</h2>
@@ -124,12 +119,7 @@ const removeName = (event) => {
       newNumber={newNumber}
       handleNumberChange={handleNumberChange}/>
       <h2>Numbers</h2>
-        {showFiltered.map((person, i) =>
-           <Person key={i} 
-           person={person} 
-           removeName={removeName}
-           nameToRemove={person}/> 
-          )}
+        <Person persons={showFiltered} deletePerson={removeName}/>
     </div>
   )
 
